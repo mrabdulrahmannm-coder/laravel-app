@@ -1,73 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.admin')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student | Laravel</title>
-    <!-- Bostrap -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-</head>
-<div class="container">
-    <div class="container-fluid mt-4">
-        <div class="card">
-            <div class="card-header">
-                data Siswa
-                <a href="/student/add" type="button" class="btn btn-primary float-right">Tambah</a>
-            </div>
-            <div class="card-body">
-                @if(session('notifikasi'))
-                <div class="allert alert-{{ session('type') }}">
-                    {{session('notifikasi')}}
-                </div>
-                @endif
+@section('title', 'Data Siswa')
 
-                <div class="table-respinsive">
-                    <table class="table table-bordered table-hover">
-                        <thead>
-                            <th>No.</th>
+@section('content')
+
+<div class="container-fluid">
+
+    {{-- Judul halaman --}}
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Data Siswa</h1>
+
+        <a href="{{ url('/student/add') }}"
+           class="btn btn-primary btn-sm shadow-sm">
+            <i class="fas fa-user-plus fa-sm text-white-50"></i>
+            Tambah Siswa
+        </a>
+    </div>
+
+    {{-- Notifikasi --}}
+    @if (session('notifikasi'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle mr-1"></i>
+
+            {{ session('notifikasi') }}
+
+            <button type="button"
+                    class="close"
+                    data-dismiss="alert"
+                    aria-label="Tutup">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    {{-- Card Data Siswa --}}
+    <div class="card shadow mb-4">
+
+        {{-- Header card --}}
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-users mr-1"></i>
+                Daftar Siswa
+            </h6>
+
+            <span class="badge badge-primary">
+                {{ $students->count() }} Data
+            </span>
+        </div>
+
+        {{-- Isi card --}}
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover"
+                       width="100%"
+                       cellspacing="0">
+
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="text-center" width="60">No</th>
                             <th>NIM</th>
                             <th>Nama</th>
-                            <th>Parodi</th>
-                            <th>Aksi</th>
-                        </thead>
-                        <tbody>
-                            @forelse ( $students as $index => $data)
+                            <th>Prodi</th>
+                            <th class="text-center" width="120">Foto</th>
+                            <th class="text-center" width="190">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @forelse ($students as $data)
                             <tr>
-                                <td>{{ $index+1 }}</td>
-                                <td>{{ $data->nim }}</td>
-                                <td>{{ $data->nama }}</td>
-                                <td>{{ $data->parodi }}</td>
-                                <td>
-                                    <a href="/student/edit/{{ $data->nim }}" class="btn btn-sm btn-warning mr-1"><i class="bi bi-search"></i>Edit</a>
-                                    <form action="/student/{{ $data->nim }}" method="POST" style="display:inline;">
+                                <td class="text-center align-middle">
+                                    {{ $loop->iteration }}
+                                </td>
+
+                                <td class="align-middle">
+                                    {{ $data->nim }}
+                                </td>
+
+                                <td class="align-middle font-weight-bold text-gray-900">
+                                    {{ $data->nama }}
+                                </td>
+
+                                <td class="align-middle">
+                                    {{ $data->prodi }}
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    @if ($data->foto)
+                                        <img
+                                            src="{{ asset('storage/' . $data->foto) }}"
+                                            alt="Foto {{ $data->nama }}"
+                                            class="img-thumbnail rounded"
+                                            style="width: 70px; height: 70px; object-fit: cover;"
+                                        >
+                                    @else
+                                        <div class="text-gray-500">
+                                            <i class="fas fa-user-circle fa-3x"></i>
+
+                                            <small class="d-block mt-1">
+                                                Tidak ada foto
+                                            </small>
+                                        </div>
+                                    @endif
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <a
+                                        href="{{ url('/student/edit/' . $data->nim) }}"
+                                        class="btn btn-warning btn-sm mr-1"
+                                        title="Edit data"
+                                    >
+                                        <i class="fas fa-user-edit"></i>
+                                        Edit
+                                    </a>
+
+                                    <form
+                                        action="{{ url('/student/' . $data->nim) }}"
+                                        method="POST"
+                                        class="d-inline"
+                                        onsubmit="return confirm('Yakin ingin menghapus data {{ $data->nama }}?')"
+                                    >
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger">Hapus</button>
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            title="Hapus data"
+                                        >
+                                            <i class="fas fa-trash-alt"></i>
+                                            Hapus
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
-                            @empty
+                        @empty
                             <tr>
-                                <td colspan="5" class="text-center">Tidak ada data untuk ditampilkan !</td>
+                                <td colspan="6"
+                                    class="text-center text-gray-500 py-5">
+
+                                    <i class="fas fa-folder-open fa-3x mb-3"></i>
+
+                                    <h6 class="font-weight-bold">
+                                        Data siswa masih kosong
+                                    </h6>
+
+                                    <p class="mb-3">
+                                        Belum ada data untuk ditampilkan.
+                                    </p>
+
+                                    <a href="{{ url('/student/add') }}"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-user-plus mr-1"></i>
+                                        Tambah Siswa
+                                    </a>
+                                </td>
                             </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @endforelse
+                    </tbody>
+
+                </table>
             </div>
+
         </div>
     </div>
-</div>
-<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-    crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-    crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-    crossorigin="anonymous"></script>
-</body>
 
-</html>
+</div>
+
+@endsection
